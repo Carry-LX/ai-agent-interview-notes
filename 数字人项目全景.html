@@ -1,0 +1,1193 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>数字人项目全景 · 从 ReAct 到领域 Harness</title>
+<style>
+  :root{
+    --ink:#0f172a; --ink-2:#1e293b; --muted:#5b6b7c; --faint:#8a97a6;
+    --paper:#f4f6f5; --card:#ffffff; --line:#dbe2e8; --line-2:#eef2f5;
+    --teal:#0f766e; --teal-2:#14b8a6; --teal-soft:#e6f4f1;
+    --amber:#b45309; --amber-2:#f59e0b; --amber-soft:#fdf1df;
+    --indigo:#3730a3; --indigo-2:#6366f1; --indigo-soft:#ecebfb;
+    --rose:#9f1239; --rose-2:#e11d48; --rose-soft:#fce8ed;
+    --shadow:0 18px 50px rgba(15,23,42,.08);
+    --radius:20px; --max:1180px;
+    --sans:"PingFang SC","Hiragino Sans GB","Noto Sans SC","Microsoft YaHei",system-ui,-apple-system,sans-serif;
+    --mono:"SFMono-Regular","JetBrains Mono","Cascadia Code",Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0; background:var(--paper); color:var(--ink); font-family:var(--sans);
+    line-height:1.75; -webkit-font-smoothing:antialiased;
+  }
+  a{color:var(--teal); text-decoration:none}
+  a:hover{text-decoration:underline}
+  code,.mono{font-family:var(--mono); font-size:.9em; background:#eef2f5; border:1px solid var(--line-2); border-radius:6px; padding:.12em .38em; white-space:nowrap}
+  .wrap{max-width:var(--max); margin:0 auto; padding:0 28px}
+  /* ---------- nav ---------- */
+  .nav{
+    position:sticky; top:0; z-index:50; backdrop-filter:blur(14px);
+    background:rgba(244,246,245,.86); border-bottom:1px solid rgba(219,226,232,.8);
+  }
+  .nav-inner{max-width:var(--max); margin:0 auto; padding:0 28px; display:flex; gap:18px; align-items:center; height:56px; overflow-x:auto}
+  .nav-brand{font-weight:800; letter-spacing:.04em; font-size:13px; color:var(--ink); white-space:nowrap}
+  .nav a{font-size:12.5px; color:var(--muted); white-space:nowrap; padding:4px 2px}
+  .nav a:hover{color:var(--teal); text-decoration:none}
+  /* ---------- hero ---------- */
+  .hero{
+    position:relative; overflow:hidden; color:#e8f1ef;
+    background:
+      radial-gradient(900px 420px at 78% 8%, rgba(20,184,166,.22), transparent 62%),
+      radial-gradient(700px 360px at 14% 18%, rgba(99,102,241,.18), transparent 60%),
+      linear-gradient(135deg,#0b1220 0%,#0e1a2b 52%,#0c1f24 100%);
+  }
+  .hero::before{
+    content:""; position:absolute; inset:0; opacity:.28;
+    background-image:linear-gradient(rgba(255,255,255,.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,.06) 1px, transparent 1px);
+    background-size:46px 46px; mask-image:linear-gradient(to bottom, #000 40%, transparent 95%);
+  }
+  .hero-inner{position:relative; max-width:var(--max); margin:0 auto; padding:86px 28px 74px}
+  .eyebrow{font-family:var(--mono); font-size:11px; letter-spacing:.22em; color:#7dd3c7; text-transform:uppercase}
+  .hero h1{font-size:clamp(34px,5.2vw,62px); line-height:1.12; margin:18px 0 20px; letter-spacing:-.02em; font-weight:850}
+  .hero h1 em{font-style:normal; color:#5eead4}
+  .lede{max-width:780px; font-size:16.5px; color:#b9c8c7; margin:0 0 34px}
+  .hero-stats{display:grid; grid-template-columns:repeat(4,1fr); gap:14px; max-width:880px}
+  .stat{border:1px solid rgba(255,255,255,.12); background:rgba(255,255,255,.045); border-radius:14px; padding:14px 16px}
+  .stat b{display:block; font-size:23px; color:#f0fdfa; letter-spacing:-.02em}
+  .stat span{font-size:11.5px; color:#93a7a5; letter-spacing:.02em}
+  .hero-note{margin-top:26px; font-size:12px; color:#7f9492; font-family:var(--mono)}
+  /* ---------- sections ---------- */
+  main{padding:8px 0 80px}
+  section{padding:62px 0 10px; scroll-margin-top:70px}
+  .section-head{display:flex; align-items:flex-end; justify-content:space-between; gap:24px; border-bottom:1px solid var(--line); padding-bottom:14px; margin-bottom:26px}
+  .section-head > div:first-child{flex:1 1 auto; min-width:0}
+  .section-no{font-family:var(--mono); font-size:11px; color:var(--teal); letter-spacing:.18em}
+  .section-head h2{font-size:clamp(24px,3.1vw,36px); letter-spacing:-.02em; margin:6px 0 0; line-height:1.2; text-wrap:balance; max-width:780px}
+  .hero h1,.card h3,.point h3,.role .role-name{text-wrap:balance}
+  .section-head p{margin:0; max-width:440px; flex:0 1 440px; color:var(--muted); font-size:13.5px; text-align:right}
+  .grid{display:grid; gap:18px}
+  .g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .g4{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .card{background:var(--card); border:1px solid var(--line); border-radius:var(--radius); padding:24px 26px; box-shadow:0 1px 0 rgba(15,23,42,.02)}
+  .card.soft{background:linear-gradient(180deg,#fff,#fbfcfc)}
+  .card h3{margin:0 0 8px; font-size:17px; letter-spacing:-.01em}
+  .card h4{margin:18px 0 6px; font-size:13px; letter-spacing:.06em; color:var(--muted); text-transform:uppercase}
+  .card p{margin:6px 0; font-size:14px; color:var(--ink-2)}
+  .muted{color:var(--muted)}
+  .small{font-size:12.5px}
+  .kicker{font-family:var(--mono); font-size:11px; letter-spacing:.14em; color:var(--teal); text-transform:uppercase}
+  .tag-row{display:flex; flex-wrap:wrap; gap:7px; margin-top:12px}
+  .tag{font-size:11.5px; padding:3px 9px; border-radius:999px; background:var(--teal-soft); color:#115e59; border:1px solid #c9e8e3; white-space:nowrap}
+  .tag.amber{background:var(--amber-soft); color:#92400e; border-color:#f3d9b5}
+  .tag.indigo{background:var(--indigo-soft); color:#3730a3; border-color:#d9d6f8}
+  .tag.rose{background:var(--rose-soft); color:#9f1239; border-color:#f6c9d4}
+  .callout{border-left:4px solid var(--teal); background:#f2faf8; padding:16px 18px; border-radius:0 12px 12px 0; font-size:14px; color:#134e4a; margin:18px 0}
+  .callout.amber{border-left-color:var(--amber-2); background:#fffaf0; color:#78350f}
+  .callout.indigo{border-left-color:var(--indigo-2); background:#f6f5ff; color:#312e81}
+  .callout.rose{border-left-color:var(--rose-2); background:#fff5f7; color:#881337}
+  .callout b{font-weight:800}
+  .divider{height:1px; background:var(--line); margin:22px 0}
+  /* ---------- figures ---------- */
+  figure{margin:18px 0 0; background:var(--card); border:1px solid var(--line); border-radius:var(--radius); padding:18px 18px 12px; box-shadow:0 1px 0 rgba(15,23,42,.02)}
+  figure svg{display:block; width:100%; height:auto}
+  figcaption{font-size:12px; color:var(--faint); margin-top:8px; line-height:1.5}
+  /* ---------- tables ---------- */
+  .table-wrap{overflow-x:auto; border:1px solid var(--line); border-radius:16px; background:var(--card)}
+  table{width:100%; border-collapse:collapse; font-size:13.2px; min-width:620px}
+  th,td{text-align:left; vertical-align:top; padding:11px 13px; border-bottom:1px solid var(--line-2)}
+  th{background:#f8faf9; font-size:11.5px; letter-spacing:.06em; color:var(--muted); text-transform:uppercase; font-weight:700}
+  tr:last-child td{border-bottom:none}
+  td b{color:var(--ink)}
+  .table-wrap.compact table{min-width:520px}
+  /* ---------- role cards ---------- */
+  .role{border-top:3px solid var(--teal); position:relative; overflow:hidden}
+  .role:nth-child(2){border-top-color:var(--indigo-2)}
+  .role:nth-child(3){border-top-color:var(--amber-2)}
+  .role:nth-child(4){border-top-color:var(--rose-2)}
+  .role .role-name{font-size:20px; font-weight:800; letter-spacing:-.01em; margin:2px 0 4px}
+  .role .role-en{font-family:var(--mono); font-size:11px; color:var(--faint); letter-spacing:.08em}
+  .role dl{display:grid; grid-template-columns:64px 1fr; gap:4px 10px; margin:14px 0 0; font-size:12.8px}
+  .role dt{color:var(--faint); font-size:11.5px}
+  .role dd{margin:0; color:var(--ink-2)}
+  /* ---------- stack ---------- */
+  .stack{display:grid; gap:8px}
+  .stack-row{display:grid; grid-template-columns:132px 1fr; gap:12px; align-items:stretch}
+  .stack-label{font-family:var(--mono); font-size:10.5px; letter-spacing:.08em; color:var(--faint); display:flex; align-items:center; justify-content:flex-end; text-align:right; padding-right:4px}
+  .stack-bar{border:1px solid var(--line); background:var(--card); border-radius:12px; padding:10px 14px; font-size:13px}
+  .stack-bar.base{background:#f8fafc; color:var(--muted)}
+  .stack-bar.dh{background:var(--teal-soft); border-color:#c9e8e3}
+  .stack-bar strong{color:var(--ink)}
+  .stack-bar .chips{display:flex; flex-wrap:wrap; gap:6px; margin-top:6px}
+  .chip{font-family:var(--mono); font-size:10.5px; padding:2px 7px; border-radius:5px; background:#fff; border:1px solid var(--line); color:var(--muted)}
+  /* ---------- metrics ---------- */
+  .metric{display:flex; flex-direction:column; gap:2px; border:1px solid var(--line); border-radius:14px; padding:14px 16px; background:var(--card)}
+  .metric b{font-size:24px; letter-spacing:-.02em; color:var(--teal)}
+  .metric span{font-size:11.8px; color:var(--muted)}
+  /* ---------- timeline ---------- */
+  .timeline{position:relative; margin:10px 0 0; padding-left:26px}
+  .timeline::before{content:""; position:absolute; left:7px; top:6px; bottom:6px; width:2px; background:linear-gradient(var(--teal-2),#cbd5e1)}
+  .tl{position:relative; padding:0 0 22px 18px}
+  .tl::before{content:""; position:absolute; left:-24px; top:6px; width:11px; height:11px; border-radius:50%; background:#fff; border:3px solid var(--teal)}
+  .tl time{font-family:var(--mono); font-size:11px; color:var(--teal); letter-spacing:.06em}
+  .tl h3{margin:2px 0 4px; font-size:15.5px}
+  .tl p{margin:0; font-size:13px; color:var(--muted)}
+  /* ---------- four points ---------- */
+  .point{position:relative; border:1px solid var(--line); border-radius:18px; background:var(--card); padding:22px 22px 18px; overflow:hidden}
+  .point .no{font-family:var(--mono); font-size:12px; color:var(--faint); letter-spacing:.12em}
+  .point h3{margin:6px 0 8px; font-size:18px}
+  .point p{font-size:13.2px; color:var(--ink-2)}
+  .point .accent{position:absolute; left:0; top:0; bottom:0; width:4px; background:var(--teal)}
+  .point:nth-child(2) .accent{background:var(--indigo-2)}
+  .point:nth-child(3) .accent{background:var(--amber-2)}
+  .point:nth-child(4) .accent{background:var(--rose-2)}
+  /* ---------- do/dont ---------- */
+  .do{border-left:3px solid var(--teal); background:#f4fbf9; border-radius:0 10px 10px 0; padding:14px 16px}
+  .dont{border-left:3px solid var(--rose-2); background:#fff6f8; border-radius:0 10px 10px 0; padding:14px 16px}
+  .do h4,.dont h4{margin:0 0 6px; font-size:12px; letter-spacing:.08em; text-transform:uppercase}
+  .do ul,.dont ul{margin:0; padding-left:18px; font-size:13px}
+  .do li,.dont li{margin:4px 0}
+  /* ---------- footer ---------- */
+  footer{border-top:1px solid var(--line); background:#0b1220; color:#8ea3a1; padding:40px 0 50px; margin-top:40px}
+  footer .wrap{display:grid; grid-template-columns:1.4fr 1fr; gap:30px}
+  footer h4{color:#d7e6e3; font-size:12px; letter-spacing:.1em; text-transform:uppercase; margin:0 0 8px}
+  footer p,footer li{font-size:12px; line-height:1.8}
+  footer ul{margin:0; padding-left:16px}
+  footer a{color:#7dd3c7}
+  .fineprint{font-family:var(--mono); font-size:10.5px; color:#5f7371; margin-top:22px}
+  @media (max-width:900px){
+    .hero-stats{grid-template-columns:repeat(2,1fr)}
+    .g3,.g4{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .section-head{display:block}
+    .section-head p{text-align:left; margin-top:8px}
+    footer .wrap{grid-template-columns:1fr}
+  }
+  @media (max-width:640px){
+    .wrap{padding:0 18px}
+    .hero-inner{padding:64px 18px 54px}
+    .g2,.g3,.g4{grid-template-columns:1fr}
+    .stack-row{grid-template-columns:1fr}
+    .stack-label{justify-content:flex-start; text-align:left}
+  }
+  @media print{
+    .nav{display:none} .hero{background:#0b1220!important; -webkit-print-color-adjust:exact; print-color-adjust:exact}
+    section{page-break-inside:avoid} .card,figure{box-shadow:none}
+  }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#64748b"/>
+    </marker>
+    <marker id="arrowTeal" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#0f766e"/>
+    </marker>
+    <marker id="arrowAmber" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#b45309"/>
+    </marker>
+  </defs>
+</svg>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <div class="nav-brand">DIGITAL HUMAN / HARNESS</div>
+    <a href="#position">定位</a>
+    <a href="#product">产品</a>
+    <a href="#chain">链路</a>
+    <a href="#roles">角色</a>
+    <a href="#objects">任务</a>
+    <a href="#collab">协作</a>
+    <a href="#storage">存算</a>
+    <a href="#events">事件</a>
+    <a href="#harness">Harness</a>
+    <a href="#react">ReAct</a>
+    <a href="#sop">SOP</a>
+    <a href="#compare">对照</a>
+    <a href="#resume">四条主线</a>
+    <a href="#evidence">证据</a>
+    <a href="#timeline">时间线</a>
+    <a href="#interview">口径</a>
+  </div>
+</nav>
+
+<header class="hero" id="top">
+  <div class="hero-inner">
+    <div class="eyebrow">Digital Human · Multi-Agent · Domain Harness</div>
+    <h1>数字人项目全景<br><em>从基础 ReAct 到领域 Harness</em></h1>
+    <p class="lede">
+      一个绑定真人的数字分身，如何在通用 AgentLoop 之上，长出工作扫描、跨账号协作、SOP 执行、记忆治理与权限边界。
+      这份文档把架构、代码增量、ReAct 三要素、SOP、外部对照和简历叙事放在同一张图上。
+    </p>
+    <div class="hero-stats">
+      <div class="stat"><b>3</b><span>产品层 Agent：发现 / 调度 / 执行</span></div>
+      <div class="stat"><b>4</b><span>技术层角色：Discovery / Manager / Coordinator / Executor</span></div>
+      <div class="stat"><b>7</b><span>数字人 Harness 增量层</span></div>
+      <div class="stat"><b>4</b><span>简历主线：产品 / 协作 / 责任链 / 稳定性</span></div>
+    </div>
+    <div class="hero-note">2026-11-17 · 基于实习档案、r2007 / r266 / r171 设计文档与数字人插件代码整理</div>
+  </div>
+</header>
+
+<main class="wrap">
+
+<!-- ============================================================ -->
+<section id="position">
+  <div class="section-head">
+    <div>
+      <div class="section-no">01 / POSITION</div>
+      <h2>先划边界：基础 Harness 与数字人 Harness</h2>
+    </div>
+    <p>基础 Harness 解决“一个 Agent 怎么循环、怎么调工具”；数字人 Harness 解决“一个绑定真人的 Agent 怎么持续工作”。</p>
+  </div>
+
+  <div class="grid g2">
+    <div class="card soft">
+      <div class="kicker">Base Harness</div>
+      <h3>通用 Agent 循环</h3>
+      <p>一个 <code>AgentLoop</code>，加上文件、bash、web、todo、plan、subagent、MCP 等通用工具；上下文靠 compaction 控制，记忆靠通用 memory core。</p>
+      <div class="tag-row">
+        <span class="tag">AgentLoop</span>
+        <span class="tag">builtin tools</span>
+        <span class="tag">todo / plan</span>
+        <span class="tag">compaction</span>
+        <span class="tag">MCP</span>
+      </div>
+    </div>
+    <div class="card soft" style="border-color:#c9e8e3;background:linear-gradient(180deg,#f7fdfb,#ffffff)">
+      <div class="kicker" style="color:var(--teal)">Digital Human Harness</div>
+      <h3>绑定真人的领域运行时</h3>
+      <p>在基础循环外面，接上工作对象、账号身份、跨账号 Broker、SOP 能力、记忆治理、审批与沙箱。这不是换一个 ReAct，而是在宿主上长出一层领域 Harness。</p>
+      <div class="tag-row">
+        <span class="tag amber">work runtime</span>
+        <span class="tag amber">Broker</span>
+        <span class="tag amber">SOP</span>
+        <span class="tag amber">owner memory</span>
+        <span class="tag amber">approval</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout">
+    <b>一句话：</b>基础 Harness 是“Agent 怎么想、怎么调工具”；数字人 Harness 是“谁在工作、工作怎么流转、跨账号怎么协作、能力从哪来、状态和记忆放在哪”。
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section id="product">
+  <div class="section-head">
+    <div>
+      <div class="section-no">02 / PRODUCT OBJECTS</div>
+      <h2>产品对象：数字分身、数字员工与 owner</h2>
+    </div>
+    <p>不是“一个更长的 Prompt”，而是有稳定身份、账户归属、工作区和权限边界的对象。</p>
+  </div>
+
+  <div class="grid g2">
+    <div class="card">
+      <h3>数字分身 / Personal Agent</h3>
+      <p>绑定真人 owner，围绕本人工作环境持续学习与迭代；跨会话、跨项目理解上下文并统筹工作。能力覆盖用户本人可在产品中完成的操作：查询、调用工具、私聊、建群、协作。</p>
+      <div class="tag-row"><span class="tag">owner 绑定</span><span class="tag">稳定对象 ID</span><span class="tag">账户私有数据</span></div>
+    </div>
+    <div class="card">
+      <h3>数字员工 / Expert Agent</h3>
+      <p>承载可复用的专业能力或企业流程，不必绑定真人。与数字分身共享底层知识、SOP、Skill、执行与协作能力，但身份、所有权和使用范围分别建模。</p>
+      <div class="tag-row"><span class="tag indigo">可复用能力</span><span class="tag indigo">不必绑定真人</span><span class="tag indigo">企业流程</span></div>
+    </div>
+  </div>
+
+  <figure>
+    <svg viewBox="0 0 1060 360" role="img" aria-label="数字分身、数字员工、owner、Broker 与工作区关系">
+      <rect x="0" y="0" width="1060" height="360" fill="#ffffff"/>
+      <text x="24" y="30" font-size="12" fill="#8a97a6" font-family="monospace" letter-spacing="1.5">OWNER / IDENTITY / EXECUTION SURFACE</text>
+
+      <rect x="36" y="120" width="180" height="104" rx="16" fill="#f8fafc" stroke="#cbd5e1"/>
+      <text x="56" y="158" font-size="16" font-weight="700" fill="#0f172a">真人 owner</text>
+      <text x="56" y="182" font-size="12" fill="#64748b">账户 · 身份 · 授权</text>
+      <text x="56" y="202" font-size="12" fill="#64748b">工作区 · 凭据</text>
+
+      <rect x="300" y="58" width="230" height="96" rx="16" fill="#e6f4f1" stroke="#99d5cb"/>
+      <text x="320" y="94" font-size="16" font-weight="700" fill="#115e59">数字分身</text>
+      <text x="320" y="116" font-size="12" fill="#0f766e">Personal Agent · 绑定人</text>
+      <text x="320" y="136" font-size="12" fill="#0f766e">跨会话 / 跨项目统筹</text>
+
+      <rect x="300" y="196" width="230" height="96" rx="16" fill="#ecebfb" stroke="#c7c3f5"/>
+      <text x="320" y="232" font-size="16" font-weight="700" fill="#312e81">数字员工</text>
+      <text x="320" y="254" font-size="12" fill="#4338ca">Expert Agent · 可复用</text>
+      <text x="320" y="274" font-size="12" fill="#4338ca">不必绑定真人</text>
+
+      <rect x="626" y="52" width="210" height="110" rx="16" fill="#fffaf0" stroke="#f3d9b5"/>
+      <text x="646" y="86" font-size="15" font-weight="700" fill="#92400e">Broker</text>
+      <text x="646" y="108" font-size="12" fill="#b45309">目录 · 身份关联</text>
+      <text x="646" y="128" font-size="12" fill="#b45309">路由 · 权限引用</text>
+      <text x="646" y="148" font-size="12" fill="#b45309">不存私有记忆 / 沙箱</text>
+
+      <rect x="626" y="196" width="210" height="110" rx="16" fill="#eef2f5" stroke="#cbd5e1"/>
+      <text x="646" y="230" font-size="15" font-weight="700" fill="#0f172a">owner 工作区</text>
+      <text x="646" y="252" font-size="12" fill="#475569">知识 · 记忆 · 凭据</text>
+      <text x="646" y="272" font-size="12" fill="#475569">文件 · 沙箱 · 执行上下文</text>
+
+      <line x1="216" y1="160" x2="292" y2="112" stroke="#64748b" stroke-width="1.6" marker-end="url(#arrow)"/>
+      <line x1="216" y1="184" x2="292" y2="238" stroke="#64748b" stroke-width="1.6" marker-end="url(#arrow)"/>
+      <text x="226" y="128" font-size="11" fill="#64748b">绑定</text>
+      <text x="226" y="244" font-size="11" fill="#64748b">授权 / 能力</text>
+
+      <line x1="530" y1="108" x2="618" y2="104" stroke="#0f766e" stroke-width="1.6" marker-end="url(#arrowTeal)"/>
+      <text x="540" y="96" font-size="11" fill="#0f766e">身份 / 入口</text>
+
+      <line x1="530" y1="238" x2="618" y2="242" stroke="#0f766e" stroke-width="1.6" marker-end="url(#arrowTeal)"/>
+      <text x="540" y="230" font-size="11" fill="#0f766e">执行</text>
+
+      <line x1="731" y1="162" x2="731" y2="188" stroke="#b45309" stroke-width="1.6" marker-end="url(#arrowAmber)"/>
+      <text x="742" y="180" font-size="11" fill="#b45309">路由到目标 Runtime / 工作区</text>
+
+      <text x="36" y="334" font-size="12" fill="#94a3b8">数字分身与数字员工共享底层能力，但身份、所有权、使用范围分别建模；Broker 是跨账号的控制与路由层。</text>
+    </svg>
+    <figcaption>产品对象：owner 绑定、数字分身 / 数字员工两种形态、Broker 控制面与 owner 执行面。</figcaption>
+  </figure>
+</section>
+
+<!-- ============================================================ -->
+<section id="chain">
+  <div class="section-head">
+    <div>
+      <div class="section-no">03 / PRODUCT CHAIN</div>
+      <h2>工作怎么进来、怎么被接住、怎么交付</h2>
+    </div>
+    <p>产品层是三类 Agent；任务记录是三者唯一共享的协作载体。</p>
+  </div>
+
+  <figure>
+    <svg viewBox="0 0 1120 300" role="img" aria-label="产品层三类 Agent 链路">
+      <rect x="0" y="0" width="1120" height="300" fill="#ffffff"/>
+      <text x="24" y="30" font-size="12" fill="#8a97a6" font-family="monospace" letter-spacing="1.5">INPUT → DISCOVERY → MANAGER → EXECUTION → DELIVERY</text>
+
+      <rect x="24" y="84" width="170" height="96" rx="14" fill="#f8fafc" stroke="#cbd5e1"/>
+      <text x="44" y="116" font-size="14" font-weight="700" fill="#0f172a">事件 / 交办</text>
+      <text x="44" y="138" font-size="11.5" fill="#64748b">IM · 群聊 · GitHub</text>
+      <text x="44" y="156" font-size="11.5" fill="#64748b">CI · 邮件 · 定时</text>
+
+      <rect x="246" y="84" width="190" height="96" rx="14" fill="#e6f4f1" stroke="#99d5cb"/>
+      <text x="266" y="112" font-size="14" font-weight="700" fill="#115e59">发现 Agent</text>
+      <text x="266" y="134" font-size="11.5" fill="#0f766e">校验来源授权</text>
+      <text x="266" y="152" font-size="11.5" fill="#0f766e">查已有任务 / 创建关联</text>
+
+      <rect x="488" y="84" width="190" height="96" rx="14" fill="#ecebfb" stroke="#c7c3f5"/>
+      <text x="508" y="112" font-size="14" font-weight="700" fill="#312e81">统一 Manager</text>
+      <text x="508" y="134" font-size="11.5" fill="#4338ca">评估 / 接收 / 规划</text>
+      <text x="508" y="152" font-size="11.5" fill="#4338ca">绑定执行 / 回复进展</text>
+
+      <rect x="730" y="84" width="190" height="96" rx="14" fill="#fffaf0" stroke="#f3d9b5"/>
+      <text x="750" y="112" font-size="14" font-weight="700" fill="#92400e">Coordinator / Executor</text>
+      <text x="750" y="134" font-size="11.5" fill="#b45309">组织协作 / 有界执行</text>
+      <text x="750" y="152" font-size="11.5" fill="#b45309">结果 / Need / 证据</text>
+
+      <rect x="972" y="84" width="124" height="96" rx="14" fill="#eef2f5" stroke="#cbd5e1"/>
+      <text x="992" y="116" font-size="14" font-weight="700" fill="#0f172a">交付</text>
+      <text x="992" y="138" font-size="11.5" fill="#475569">回执</text>
+      <text x="992" y="156" font-size="11.5" fill="#475569">原会话 / 指定位置</text>
+
+      <line x1="194" y1="132" x2="238" y2="132" stroke="#64748b" stroke-width="1.6" marker-end="url(#arrow)"/>
+      <line x1="436" y1="132" x2="480" y2="132" stroke="#64748b" stroke-width="1.6" marker-end="url(#arrow)"/>
+      <line x1="678" y1="132" x2="722" y2="132" stroke="#64748b" stroke-width="1.6" marker-end="url(#arrow)"/>
+      <line x1="920" y1="132" x2="964" y2="132" stroke="#64748b" stroke-width="1.6" marker-end="url(#arrow)"/>
+
+      <rect x="246" y="212" width="674" height="48" rx="12" fill="#f8fafc" stroke="#cbd5e1" stroke-dasharray="5 4"/>
+      <text x="266" y="241" font-size="12.5" font-weight="700" fill="#334155">任务记录：唯一共享的协作载体</text>
+      <text x="520" y="241" font-size="11.5" fill="#64748b">创建依据 · 目标与要求 · 调度决定 · 执行进展 · 等待与恢复 · 成果证据 · 会话关联</text>
+
+      <text x="24" y="292" font-size="11.5" fill="#94a3b8">三个 Agent 独立上下文；任务记录跨运行、跨会话、跨协作保持连续。</text>
+    </svg>
+    <figcaption>产品链路：发现 Agent 不执行、调度/Manager 不干具体业务、执行 Agent 不直接唤醒上游；任务记录负责连续性。</figcaption>
+  </figure>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>角色</th><th>输入</th><th>输出</th><th>明确不做</th></tr></thead>
+      <tbody>
+        <tr><td><b>发现 Agent</b></td><td>追踪目标 + 授权来源</td><td>新任务，或与原任务的关联</td><td>不执行、不找人、不建群、不发协作消息</td></tr>
+        <tr><td><b>调度 Agent</b></td><td>本人 / 外部交办、查询、调整</td><td>任务记录、执行绑定、进展回复</td><td>不做具体业务、不组织协作</td></tr>
+        <tr><td><b>执行 Agent</b></td><td>任务与要求</td><td>成果、任务更新、交付回执</td><td>不直接唤醒调度 Agent，靠任务更新触发通知</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section id="roles">
+  <div class="section-head">
+    <div>
+      <div class="section-no">04 / TECHNICAL ROLES</div>
+      <h2>技术层四角色：Discovery / Manager / Coordinator / Executor</h2>
+    </div>
+    <p>产品语言里的“调度”在技术上收成了统一 Manager；Coordinator 只在授权的 TeamRun 内存在。</p>
+  </div>
+
+  <div class="grid g2">
+    <div class="card role">
+      <div class="role-en">DISCOVERY</div>
+      <div class="role-name">发现 / 研究</div>
+      <dl>
+        <dt>做什么</dt><dd>高召回扫描授权来源，再按缺口定向调查，提交 ResearchReport。</dd>
+        <dt>不做什么</dt><dd>不接收正式工作，不创建执行节点。</dd>
+        <dt>关键词</dt><dd>ResearchReport · 证据 · 覆盖 · 未知 · 关系建议</dd>
+      </dl>
+    </div>
+    <div class="card role">
+      <div class="role-en">MANAGER</div>
+      <div class="role-name">统一 Manager</div>
+      <dl>
+        <dt>做什么</dt><dd>所有任务入口汇入同一个逻辑 Manager；评估、接收、关联、暂缓或拒绝，维护目标、计划、依赖与验收。</dd>
+        <dt>不做什么</dt><dd>不亲自承担耗时执行；不直接修改持久化状态。</dd>
+        <dt>关键词</dt><dd>ManagerRun · 接纳 ≠ 派发 · 最终验收</dd>
+      </dl>
+    </div>
+    <div class="card role">
+      <div class="role-en">COORDINATOR</div>
+      <div class="role-name">协作协调</div>
+      <dl>
+        <dt>做什么</dt><dd>只在 Manager 发起且授权的 TeamRun 内组织成员、拆分 WorkUnit、跟进、局部验收与汇总。</dd>
+        <dt>不做什么</dt><dd>不接管 WorkCase 总体目标、接收决策和最终验收。</dd>
+        <dt>关键词</dt><dd>TeamRun · 不嵌套 · 单 Coordinator</dd>
+      </dl>
+    </div>
+    <div class="card role">
+      <div class="role-en">EXECUTOR</div>
+      <div class="role-name">执行</div>
+      <dl>
+        <dt>做什么</dt><dd>只执行明确的 ExecutionSpec，返回 Result、Need、证据或产物。</dd>
+        <dt>不做什么</dt><dd>不扩目标、不接收新的业务任务、不能给自己派活。</dd>
+        <dt>关键词</dt><dd>ExecutionSpec · Result / Need · 有界运行</dd>
+      </dl>
+    </div>
+  </div>
+
+  <div class="callout indigo">
+    <b>一个 owner 只有一个逻辑 Manager。</b> <code>owner</code>、<code>external_conversation</code>、<code>team_member</code> 是同一个 Manager 在不同入口和授权范围内的运行，不是三个 Manager 实例。RunContext 由 Runtime 生成，消息正文或 Prompt 不能扩大它。
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section id="objects">
+  <div class="section-head">
+    <div>
+      <div class="section-no">05 / WORK OBJECTS</div>
+      <h2>任务与运行解耦：WorkCase 不跟 Session 走</h2>
+    </div>
+    <p>长寿命的业务工作，与短寿命的一次运行分开；失败、超时、结束都不能直接等于任务失败。</p>
+  </div>
+
+  <figure>
+    <svg viewBox="0 0 1100 430" role="img" aria-label="WorkCase、WorkNode、AgentRun 与 ManagerRun 的对象关系">
+      <rect x="0" y="0" width="1100" height="430" fill="#ffffff"/>
+      <text x="24" y="30" font-size="12" fill="#8a97a6" font-family="monospace" letter-spacing="1.5">CANDIDATE → CASES → NODES → RUNS</text>
+
+      <rect x="28" y="66" width="196" height="104" rx="14" fill="#f8fafc" stroke="#cbd5e1"/>
+      <text x="48" y="98" font-size="14" font-weight="700" fill="#0f172a">WorkCandidate</text>
+      <text x="48" y="120" font-size="11.5" fill="#64748b">潜在工作线索</text>
+      <text x="48" y="140" font-size="11.5" fill="#64748b">+ ResearchReport</text>
+
+      <rect x="280" y="46" width="310" height="286" rx="18" fill="#f7fdfb" stroke="#99d5cb" stroke-width="1.4"/>
+      <text x="300" y="78" font-size="16" font-weight="800" fill="#115e59">WorkCase</text>
+      <text x="300" y="100" font-size="11.5" fill="#0f766e">业务工作：稳定身份 · 目标版本 · 计划 · 证据 · 验收</text>
+
+      <rect x="302" y="120" width="266" height="54" rx="10" fill="#ffffff" stroke="#c9e8e3"/>
+      <text x="318" y="143" font-size="12.5" font-weight="700" fill="#0f172a">WorkNode · ExecutionTask</text>
+      <text x="318" y="162" font-size="11" fill="#64748b">可调度的执行节点</text>
+
+      <rect x="302" y="184" width="128" height="54" rx="10" fill="#ffffff" stroke="#c9e8e3"/>
+      <text x="316" y="207" font-size="12" font-weight="700" fill="#0f172a">TeamRun</text>
+      <text x="316" y="225" font-size="10.5" fill="#64748b">协作运行</text>
+
+      <rect x="440" y="184" width="128" height="54" rx="10" fill="#ffffff" stroke="#c9e8e3"/>
+      <text x="454" y="207" font-size="12" font-weight="700" fill="#0f172a">Approval</text>
+      <text x="454" y="225" font-size="10.5" fill="#64748b">授权门槛</text>
+
+      <rect x="302" y="248" width="128" height="54" rx="10" fill="#ffffff" stroke="#c9e8e3"/>
+      <text x="316" y="271" font-size="12" font-weight="700" fill="#0f172a">Dependency</text>
+      <text x="316" y="289" font-size="10.5" fill="#64748b">阻塞关系</text>
+
+      <rect x="440" y="248" width="128" height="54" rx="10" fill="#ffffff" stroke="#c9e8e3"/>
+      <text x="454" y="271" font-size="12" font-weight="700" fill="#0f172a">Delivery</text>
+      <text x="454" y="289" font-size="10.5" fill="#64748b">交付状态</text>
+
+      <rect x="638" y="66" width="190" height="96" rx="14" fill="#ecebfb" stroke="#c7c3f5"/>
+      <text x="658" y="98" font-size="14" font-weight="700" fill="#312e81">ManagerRun</text>
+      <text x="658" y="120" font-size="11.5" fill="#4338ca">Manager 的一次运行</text>
+      <text x="658" y="140" font-size="11.5" fill="#4338ca">AgentRun 的类型化视图</text>
+
+      <rect x="638" y="188" width="190" height="96" rx="14" fill="#fffaf0" stroke="#f3d9b5"/>
+      <text x="658" y="220" font-size="14" font-weight="700" fill="#92400e">AgentRun</text>
+      <text x="658" y="242" font-size="11.5" fill="#b45309">一次有界运行</text>
+      <text x="658" y="262" font-size="11.5" fill="#b45309">queued / running / failed / timed_out</text>
+
+      <rect x="874" y="66" width="196" height="96" rx="14" fill="#f8fafc" stroke="#cbd5e1"/>
+      <text x="894" y="98" font-size="14" font-weight="700" fill="#0f172a">WorkRelation</text>
+      <text x="894" y="120" font-size="11.5" fill="#64748b">same_work · followup</text>
+      <text x="894" y="140" font-size="11.5" fill="#64748b">dependency · conflict</text>
+
+      <rect x="874" y="188" width="196" height="96" rx="14" fill="#f8fafc" stroke="#cbd5e1"/>
+      <text x="894" y="220" font-size="14" font-weight="700" fill="#0f172a">Event Journal</text>
+      <text x="894" y="242" font-size="11.5" fill="#64748b">审计事实源</text>
+      <text x="894" y="262" font-size="11.5" fill="#64748b">eventSeq / stateRevision / dispatchSeq</text>
+
+      <line x1="224" y1="118" x2="272" y2="118" stroke="#64748b" stroke-width="1.6" marker-end="url(#arrow)"/>
+      <line x1="590" y1="150" x2="630" y2="116" stroke="#64748b" stroke-width="1.6" marker-end="url(#arrow)"/>
+      <line x1="590" y1="150" x2="630" y2="232" stroke="#64748b" stroke-width="1.6" marker-end="url(#arrow)"/>
+      <line x1="828" y1="116" x2="866" y2="116" stroke="#64748b" stroke-width="1.6" marker-end="url(#arrow)"/>
+      <line x1="828" y1="236" x2="866" y2="236" stroke="#64748b" stroke-width="1.6" marker-end="url(#arrow)"/>
+
+      <text x="28" y="382" font-size="12" fill="#64748b">AgentRun 失败不能直接把 WorkCase 标成失败；Runtime 先判断有限重试、返回 Need，或把关键失败上浮给 Manager。</text>
+      <text x="28" y="404" font-size="12" fill="#64748b">业务状态、执行状态、审计状态分开判断：工作进行到哪、某次运行在做什么、为什么变化。</text>
+    </svg>
+    <figcaption>对象模型：Candidate / WorkCase / WorkNode / AgentRun / ManagerRun / WorkRelation / Event Journal。ManagerRun 是 AgentRun 的类型化视图，不是另一套运行实体。</figcaption>
+  </figure>
+
+  <div class="grid g3">
+    <div class="card soft"><h3>业务状态</h3><p>WorkCandidate / WorkCase / WorkNode：这件工作进行到哪一步。等待、暂停、失败、取消都有明确标记。</p></div>
+    <div class="card soft"><h3>执行状态</h3><p>AgentRun：某次模型或工具运行正在做什么。结束、失败、超时都不等于任务完成。</p></div>
+    <div class="card soft"><h3>审计状态</h3><p>Event / Trace / Policy Audit：为什么变化、具体做了什么、依据什么策略放行。</p></div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section id="collab">
+  <div class="section-head">
+    <div>
+      <div class="section-no">06 / RESPONSIBILITY</div>
+      <h2>协作与责任：接纳 ≠ 派发，提交 ≠ 完成</h2>
+    </div>
+    <p>架构里最难的不是让 Agent 干活，而是谁接纳、谁派发、谁验收、谁最终负责。</p>
+  </div>
+
+  <figure>
+    <svg viewBox="0 0 1100 300" role="img" aria-label="从 Candidate 到交付的责任链">
+      <rect x="0" y="0" width="1100" height="300" fill="#ffffff"/>
+      <text x="24" y="30" font-size="12" fill="#8a97a6" font-family="monospace" letter-spacing="1.5">ACCEPTANCE → PLANNING → EXECUTION → REVIEW → DELIVERY</text>
+
+      <rect x="24" y="82" width="150" height="72" rx="12" fill="#f8fafc" stroke="#cbd5e1"/>
+      <text x="42" y="110" font-size="13" font-weight="700" fill="#0f172a">Candidate</text>
+      <text x="42" y="132" font-size="11" fill="#64748b">潜在工作</text>
+
+      <rect x="204" y="82" width="150" height="72" rx="12" fill="#e6f4f1" stroke="#99d5cb"/>
+      <text x="222" y="110" font-size="13" font-weight="700" fill="#115e59">WorkCase</text>
+      <text x="222" y="132" font-size="11" fill="#0f766e">接纳 / 关联</text>
+
+      <rect x="384" y="82" width="150" height="72" rx="12" fill="#ecebfb" stroke="#c7c3f5"/>
+      <text x="402" y="110" font-size="13" font-weight="700" fill="#312e81">Manager 计划</text>
+      <text x="402" y="132" font-size="11" fill="#4338ca">目标 / 验收 / 依赖</text>
+
+      <rect x="564" y="82" width="150" height="72" rx="12" fill="#fffaf0" stroke="#f3d9b5"/>
+      <text x="582" y="110" font-size="13" font-weight="700" fill="#92400e">ExecutionTask</text>
+      <text x="582" y="132" font-size="11" fill="#b45309">派发 / 有界执行</text>
+
+      <rect x="744" y="82" width="150" height="72" rx="12" fill="#f8fafc" stroke="#cbd5e1"/>
+      <text x="762" y="110" font-size="13" font-weight="700" fill="#0f172a">Result / Need</text>
+      <text x="762" y="132" font-size="11" fill="#64748b">证据 / 产物 / 阻塞</text>
+
+      <rect x="924" y="82" width="152" height="72" rx="12" fill="#fce8ed" stroke="#f6c9d4"/>
+      <text x="942" y="110" font-size="13" font-weight="700" fill="#9f1239">父级验收</text>
+      <text x="942" y="132" font-size="11" fill="#9f1239">验收后才算完成</text>
+
+      <line x1="174" y1="118" x2="196" y2="118" stroke="#64748b" stroke-width="1.6" marker-end="url(#arrow)"/>
+      <line x1="354" y1="118" x2="376" y2="118" stroke="#64748b" stroke-width="1.6" marker-end="url(#arrow)"/>
+      <line x1="534" y1="118" x2="556" y2="118" stroke="#64748b" stroke-width="1.6" marker-end="url(#arrow)"/>
+      <line x1="714" y1="118" x2="736" y2="118" stroke="#64748b" stroke-width="1.6" marker-end="url(#arrow)"/>
+      <line x1="894" y1="118" x2="916" y2="118" stroke="#64748b" stroke-width="1.6" marker-end="url(#arrow)"/>
+
+      <rect x="204" y="196" width="330" height="42" rx="10" fill="#fffaf0" stroke="#f3d9b5"/>
+      <text x="222" y="222" font-size="12" font-weight="700" fill="#92400e">接纳 ≠ 派发</text>
+      <text x="330" y="222" font-size="11" fill="#b45309">接纳只创建/关联 WorkCase，Manager 补齐计划后才派发</text>
+
+      <rect x="564" y="196" width="330" height="42" rx="10" fill="#fce8ed" stroke="#f6c9d4"/>
+      <text x="582" y="222" font-size="12" font-weight="700" fill="#9f1239">提交 ≠ 完成</text>
+      <text x="688" y="222" font-size="11" fill="#9f1239">子 Agent 提交后待验收，父级验收后才进入反馈链路</text>
+
+      <text x="24" y="276" font-size="11.5" fill="#94a3b8">TeamRun 只由 Manager(owner) 发起；不嵌套；同一时刻一个活动 TeamRun 和一个有效 Coordinator。</text>
+    </svg>
+    <figcaption>责任链：接纳只产生业务工作，派发才产生执行；执行者提交结果只进入“待验收”，父级验收后才算交付。</figcaption>
+  </figure>
+
+  <div class="grid g2">
+    <div class="card">
+      <h3>协作的三种方式</h3>
+      <p><b>独立完成</b>：直接使用工具、知识与 Skill。<b>私聊 / 直接调用</b>：检查权限后提交子任务、追问、接收结果。<b>群聊协作</b>：创建或复用群，按 owner 策略邀请分身/员工，真人由用户手动添加。</p>
+    </div>
+    <div class="card">
+      <h3>协作子 Agent 的边界</h3>
+      <p>一轮只绑定一个群、一个目标。允许读取绑定群消息、提问、澄清、向父执行 Agent 提交结果；禁止找人、拉群、换群、私聊、创建其他协作任务或子 Agent。</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section id="storage">
+  <div class="section-head">
+    <div>
+      <div class="section-no">07 / CONTROL PLANE</div>
+      <h2>存算分离：Broker 协作日志与群级存储</h2>
+    </div>
+    <p>Broker 保存身份、目录、授权引用、协作消息日志、每目标 inbox/队列和回执，并唤醒目标 Manager；群级协作存储保存黑板与文件快照；私有知识、记忆、凭据、沙箱、执行上下文留在 owner。</p>
+  </div>
+
+  <figure>
+    <svg viewBox="0 0 1100 400" role="img" aria-label="Broker 控制面与 owner 执行面分离">
+      <rect x="0" y="0" width="1100" height="400" fill="#ffffff"/>
+      <text x="24" y="30" font-size="12" fill="#8a97a6" font-family="monospace" letter-spacing="1.5">CONTROL PLANE / EXECUTION PLANE</text>
+
+      <rect x="26" y="64" width="336" height="270" rx="18" fill="#fffaf0" stroke="#f3d9b5"/>
+      <text x="48" y="98" font-size="17" font-weight="800" fill="#92400e">Broker · 控制面 + 协作日志</text>
+      <text x="48" y="122" font-size="12" fill="#b45309">目录 · 身份 · 授权引用</text>
+      <text x="48" y="144" font-size="12" fill="#b45309">消息日志 · 每目标 inbox/队列 · wake</text>
+      <rect x="48" y="166" width="292" height="60" rx="10" fill="#ffffff" stroke="#f3d9b5"/>
+      <text x="64" y="190" font-size="12" font-weight="700" fill="#0f172a">不保存</text>
+      <text x="64" y="211" font-size="11.5" fill="#64748b">知识 · 私有记忆 · 应用凭据 · 文件字节 · 沙箱 · 执行上下文</text>
+      <text x="48" y="258" font-size="12" fill="#b45309">Broker 所有权主体：已验证的 数字人产品线 账户 principal</text>
+      <text x="48" y="282" font-size="12" fill="#b45309">IM/文档平台身份用于渠道授权，不能据此合并 owner</text>
+      <text x="48" y="306" font-size="11.5" fill="#94a3b8">身份可见 ≠ 入口可调用</text>
+
+      <rect x="434" y="64" width="300" height="126" rx="18" fill="#e6f4f1" stroke="#99d5cb"/>
+      <text x="456" y="96" font-size="15" font-weight="800" fill="#115e59">owner A · 执行面</text>
+      <text x="456" y="120" font-size="11.5" fill="#0f766e">知识 · 记忆 · 凭据 · 文件</text>
+      <text x="456" y="140" font-size="11.5" fill="#0f766e">沙箱 · 执行上下文 · 工作区</text>
+      <text x="456" y="166" font-size="11" fill="#64748b">数字人产品线 保存和管理</text>
+
+      <rect x="434" y="208" width="300" height="126" rx="18" fill="#ecebfb" stroke="#c7c3f5"/>
+      <text x="456" y="240" font-size="15" font-weight="800" fill="#312e81">owner B · 执行面</text>
+      <text x="456" y="264" font-size="11.5" fill="#4338ca">知识 · 记忆 · 凭据 · 文件</text>
+      <text x="456" y="284" font-size="11.5" fill="#4338ca">沙箱 · 执行上下文 · 工作区</text>
+      <text x="456" y="310" font-size="11" fill="#64748b">目标 Runtime / 目标 Manager</text>
+
+      <rect x="806" y="64" width="266" height="126" rx="18" fill="#f8fafc" stroke="#cbd5e1"/>
+      <text x="828" y="96" font-size="14" font-weight="800" fill="#0f172a">跨账号消息</text>
+      <text x="828" y="120" font-size="11.5" fill="#64748b">消息 → Broker 日志 + inbox</text>
+      <text x="828" y="140" font-size="11.5" fill="#64748b">黑板 / 文件快照 → 群级存储</text>
+      <text x="828" y="160" font-size="11.5" fill="#64748b">→ 目标 Runtime / Manager</text>
+
+      <rect x="806" y="208" width="266" height="126" rx="18" fill="#f8fafc" stroke="#cbd5e1"/>
+      <text x="828" y="240" font-size="14" font-weight="800" fill="#0f172a">结果回传</text>
+      <text x="828" y="264" font-size="11.5" fill="#64748b">执行在 owner 工作区</text>
+      <text x="828" y="284" font-size="11.5" fill="#64748b">结果沿原 operationId 回传</text>
+      <text x="828" y="304" font-size="11.5" fill="#64748b">黑板 / artifact 归群存储</text>
+
+      <line x1="362" y1="126" x2="426" y2="126" stroke="#0f766e" stroke-width="1.6" marker-end="url(#arrowTeal)"/>
+      <line x1="362" y1="270" x2="426" y2="270" stroke="#0f766e" stroke-width="1.6" marker-end="url(#arrowTeal)"/>
+      <line x1="734" y1="126" x2="798" y2="116" stroke="#b45309" stroke-width="1.6" marker-end="url(#arrowAmber)"/>
+      <line x1="734" y1="270" x2="798" y2="270" stroke="#b45309" stroke-width="1.6" marker-end="url(#arrowAmber)"/>
+
+      <text x="26" y="372" font-size="12" fill="#64748b">对照 DeepSeek Super-agent：那边是“云端 Agent Loop + 持久状态 + 端侧 daemon”；这里是“Broker 协作日志/队列 + 群级存储 + owner 执行环境”。</text>
+    </svg>
+    <figcaption>存算分离：Broker 管身份、路由、授权、协作日志和队列；群级存储管黑板与文件快照；owner 侧管计算、私有状态和执行环境。群聊经 Broker 路由，执行在目标 owner 工作区。</figcaption>
+  </figure>
+
+  <div class="callout amber">
+    <b>口径：</b>当前实现是 Broker 协作日志/队列 + 群级存储 + owner 执行环境；r266 的 holder / sidecar 是把 Runtime 搬到云端的演进方向。
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section id="events">
+  <div class="section-head">
+    <div>
+      <div class="section-no">08 / EVENT-DRIVEN</div>
+      <h2>事件驱动与恢复：一次 ReAct 只是一次有界运行</h2>
+    </div>
+    <p>事件进入、Scheduler 唤醒、AgentRun 执行、结果回写、事件再驱动；等待不是失败，恢复不是重跑。</p>
+  </div>
+
+  <figure>
+    <svg viewBox="0 0 1000 380" role="img" aria-label="事件驱动的有界运行与恢复循环">
+      <rect x="0" y="0" width="1000" height="380" fill="#ffffff"/>
+      <text x="24" y="30" font-size="12" fill="#8a97a6" font-family="monospace" letter-spacing="1.5">EVENT → SCHEDULER → RUN → RESULT / NEED → EVENT</text>
+
+      <rect x="60" y="84" width="190" height="82" rx="14" fill="#f8fafc" stroke="#cbd5e1"/>
+      <text x="82" y="114" font-size="14" font-weight="700" fill="#0f172a">Event</text>
+      <text x="82" y="136" font-size="11.5" fill="#64748b">消息 · 评论 · CI · 定时</text>
+
+      <rect x="310" y="84" width="190" height="82" rx="14" fill="#ecebfb" stroke="#c7c3f5"/>
+      <text x="332" y="114" font-size="14" font-weight="700" fill="#312e81">Scheduler</text>
+      <text x="332" y="136" font-size="11.5" fill="#4338ca">依赖 · 队列 · 并发</text>
+
+      <rect x="560" y="84" width="190" height="82" rx="14" fill="#e6f4f1" stroke="#99d5cb"/>
+      <text x="582" y="114" font-size="14" font-weight="700" fill="#115e59">AgentRun</text>
+      <text x="582" y="136" font-size="11.5" fill="#0f766e">一次有界决策</text>
+
+      <rect x="810" y="84" width="160" height="82" rx="14" fill="#fffaf0" stroke="#f3d9b5"/>
+      <text x="832" y="114" font-size="14" font-weight="700" fill="#92400e">Result / Need</text>
+      <text x="832" y="136" font-size="11.5" fill="#b45309">证据 / 产物 / 阻塞</text>
+
+      <line x1="250" y1="125" x2="302" y2="125" stroke="#64748b" stroke-width="1.6" marker-end="url(#arrow)"/>
+      <line x1="500" y1="125" x2="552" y2="125" stroke="#64748b" stroke-width="1.6" marker-end="url(#arrow)"/>
+      <line x1="750" y1="125" x2="802" y2="125" stroke="#64748b" stroke-width="1.6" marker-end="url(#arrow)"/>
+
+      <rect x="310" y="236" width="440" height="64" rx="14" fill="#f8fafc" stroke="#cbd5e1" stroke-dasharray="5 4"/>
+      <text x="332" y="262" font-size="14" font-weight="800" fill="#0f172a">Event Journal · 审计事实源</text>
+      <text x="332" y="284" font-size="11.5" fill="#64748b">eventSeq / stateRevision / dispatchSeq</text>
+
+      <path d="M890 166 C890 228 800 236 758 246" fill="none" stroke="#b45309" stroke-width="1.6" marker-end="url(#arrowAmber)"/>
+      <path d="M310 268 C210 268 140 220 140 172" fill="none" stroke="#0f766e" stroke-width="1.6" marker-end="url(#arrowTeal)"/>
+
+      <rect x="60" y="236" width="210" height="64" rx="14" fill="#fce8ed" stroke="#f6c9d4"/>
+      <text x="82" y="262" font-size="13" font-weight="800" fill="#9f1239">等待 / 暂停 / 恢复</text>
+      <text x="82" y="284" font-size="11" fill="#9f1239">保存等待对象与恢复条件</text>
+
+      <text x="24" y="344" font-size="12" fill="#64748b">AgentRun 失败不直接等于 WorkCase 失败；等待不表示失败；事件到达后基于最新状态创建新运行，旧 dispatch 结果不能覆盖新运行。</text>
+    </svg>
+    <figcaption>事件驱动：长任务由多次有界 AgentRun 推进，不依赖一个永久在线、持有可变内存的 Agent。</figcaption>
+  </figure>
+</section>
+
+<!-- ============================================================ -->
+<section id="harness">
+  <div class="section-head">
+    <div>
+      <div class="section-no">09 / DOMAIN HARNESS</div>
+      <h2>数字人 Harness 到底加了什么</h2>
+    </div>
+    <p>不是改写 AgentLoop，而是在宿主上接一层领域运行时：工作、身份、协作、SOP、治理、存储。</p>
+  </div>
+
+  <div class="card">
+    <div class="kicker">Plugin capability surface</div>
+    <h3>启动时广播的数字人能力</h3>
+    <p class="small muted">数字人插件进程通过 <code>host.call</code> 接宿主能力，并公开自己的 capability 列表。</p>
+    <div class="tag-row">
+      <span class="tag">applications</span><span class="tag">brokerIdentity</span><span class="tag">initialization</span>
+      <span class="tag">knowledgeRefresh</span><span class="tag">host</span><span class="tag">bot</span>
+      <span class="tag">directory</span><span class="tag">conversations</span><span class="tag amber">workScan</span>
+      <span class="tag amber">workExecution</span><span class="tag amber">workDelivery</span><span class="tag amber">workCalendar</span>
+    </div>
+  </div>
+
+  <div class="stack" style="margin-top:18px">
+    <div class="stack-row">
+      <div class="stack-label">DOMAIN</div>
+      <div class="stack-bar dh"><strong>数字人 Harness</strong>：工作运行时 · 身份/入口 · 会话协作 · 知识/SOP · 治理 · 存储/恢复
+        <div class="chips"><span class="chip">work-scan</span><span class="chip">work-manager</span><span class="chip">work-execution</span><span class="chip">work-delivery</span><span class="chip">broker</span><span class="chip">directory</span><span class="chip">conversations</span><span class="chip">sops</span><span class="chip">access-policy</span></div>
+      </div>
+    </div>
+    <div class="stack-row">
+      <div class="stack-label">BRIDGE</div>
+      <div class="stack-bar"><strong>宿主桥</strong>：<code>host.call</code> · <code>gateway.*</code> · <code>sop.*</code> · <code>workspace.*</code> · 权限/事件/会话
+        <div class="chips"><span class="chip">bindSession</span><span class="chip">submitTurn</span><span class="chip">runGet</span><span class="chip">runEvents</span><span class="chip">sop.execution</span><span class="chip">workspace.resolve</span></div>
+      </div>
+    </div>
+    <div class="stack-row">
+      <div class="stack-label">BASE</div>
+      <div class="stack-bar base"><strong>基础 Harness</strong>：AgentLoop · builtin tools · todo/plan · compaction · MCP · subagent · memory core
+        <div class="chips"><span class="chip">read_file</span><span class="chip">bash</span><span class="chip">web_search</span><span class="chip">todo_write</span><span class="chip">read_skill</span><span class="chip">agent</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid g3" style="margin-top:18px">
+    <div class="card"><h3>工作运行时</h3><p><code>work-scan</code> 扫描消息（带 overlap / lookback）→ <code>work-analysis</code> 分析 → <code>work-manager</code> 选择 native / manager 模式 → <code>work-execution</code> 执行 → <code>work-delivery</code> 投递并拿回执。</p></div>
+    <div class="card"><h3>身份与入口</h3><p><code>apps</code> 登录 scope、<code>broker</code> 身份/节点、<code>directory</code> 目录、<code>bot</code> 群绑定、<code>access-policy</code> 执行/可见性策略；身份可见与入口可调用分开。</p></div>
+    <div class="card"><h3>知识与 SOP</h3><p><code>initialization</code> 六阶段：resolve → collect → distill → package → publish → install；<code>sops</code> 负责转换、生命周期、调度、评审与 task runner。</p></div>
+  </div>
+
+  <div class="table-wrap" style="margin-top:18px">
+    <table>
+      <thead><tr><th>层</th><th>基础 Harness</th><th>数字人新增</th></tr></thead>
+      <tbody>
+        <tr><td><b>循环</b></td><td>AgentLoop：模型 → 工具 → 结果 → 下一轮</td><td>把一次循环包成有界 AgentRun，外面挂 WorkCase / 验收 / 恢复</td></tr>
+        <tr><td><b>工具</b></td><td>文件、bash、web、todo、plan、subagent、MCP</td><td>SOP 工具、跨账号会话工具、owner 读取、工作扫描/执行/交付</td></tr>
+        <tr><td><b>记忆</b></td><td>通用 memory core、compaction</td><td>owner 级工作记忆、知识包、任务账本、按缺口渐进加载</td></tr>
+        <tr><td><b>身份</b></td><td>无</td><td>账户、数字分身、目录、Broker 身份、Bot 绑定</td></tr>
+        <tr><td><b>状态</b></td><td>session / tool results</td><td>work store、execution store、conversation store、host task store</td></tr>
+        <tr><td><b>治理</b></td><td>权限模式</td><td>access policy、审批、可见性、沙箱、真实回执</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section id="react">
+  <div class="section-head">
+    <div>
+      <div class="section-no">10 / REACT</div>
+      <h2>标准 ReAct 的 Plan / Tool / Memory</h2>
+    </div>
+    <p>一次 ReAct 是一个 AgentRun；Plan 锚定验收，Tool 带治理，Memory 共享但隔离。</p>
+  </div>
+
+  <figure>
+    <svg viewBox="0 0 1000 360" role="img" aria-label="ReAct 循环与计划、工具、记忆">
+      <rect x="0" y="0" width="1000" height="360" fill="#ffffff"/>
+      <text x="24" y="30" font-size="12" fill="#8a97a6" font-family="monospace" letter-spacing="1.5">MODEL → TOOL CALLS → RESULTS → MODEL</text>
+
+      <rect x="370" y="60" width="260" height="72" rx="14" fill="#e6f4f1" stroke="#99d5cb"/>
+      <text x="398" y="90" font-size="15" font-weight="800" fill="#115e59">Model</text>
+      <text x="398" y="112" font-size="11.5" fill="#0f766e">流式输出 · 计划下一步</text>
+
+      <rect x="700" y="150" width="240" height="72" rx="14" fill="#ecebfb" stroke="#c7c3f5"/>
+      <text x="726" y="180" font-size="15" font-weight="800" fill="#312e81">Tool calls</text>
+      <text x="726" y="202" font-size="11.5" fill="#4338ca">并行 · 权限 · 截断兜底</text>
+
+      <rect x="370" y="240" width="260" height="72" rx="14" fill="#fffaf0" stroke="#f3d9b5"/>
+      <text x="398" y="270" font-size="15" font-weight="800" fill="#92400e">Results</text>
+      <text x="398" y="292" font-size="11.5" fill="#b45309">配对 · 缺失结果 · 重复失败</text>
+
+      <rect x="60" y="150" width="240" height="72" rx="14" fill="#f8fafc" stroke="#cbd5e1"/>
+      <text x="86" y="180" font-size="15" font-weight="800" fill="#0f172a">Stop</text>
+      <text x="86" y="202" font-size="11.5" fill="#64748b">无 tool call / maxTurns / abort</text>
+
+      <path d="M630 106 C700 106 760 130 796 142" fill="none" stroke="#64748b" stroke-width="1.8" marker-end="url(#arrow)"/>
+      <path d="M820 222 C820 250 720 276 638 276" fill="none" stroke="#64748b" stroke-width="1.8" marker-end="url(#arrow)"/>
+      <path d="M370 276 C250 276 180 250 180 222" fill="none" stroke="#64748b" stroke-width="1.8" marker-end="url(#arrow)"/>
+      <path d="M180 150 C180 118 250 96 362 96" fill="none" stroke="#64748b" stroke-width="1.8" marker-end="url(#arrow)"/>
+
+      <rect x="60" y="60" width="240" height="58" rx="12" fill="#f4fbf9" stroke="#c9e8e3"/>
+      <text x="80" y="84" font-size="12.5" font-weight="800" fill="#115e59">Plan</text>
+      <text x="80" y="104" font-size="11" fill="#0f766e">todo_write · WorkCase 验收 · 停止条件</text>
+
+      <rect x="60" y="292" width="240" height="46" rx="12" fill="#f4fbf9" stroke="#c9e8e3"/>
+      <text x="80" y="313" font-size="12.5" font-weight="800" fill="#115e59">Memory</text>
+      <text x="80" y="331" font-size="11" fill="#0f766e">概览 + 关键词 · 按缺口加载</text>
+
+      <text x="700" y="300" font-size="12" fill="#64748b">工具结果写回 transcript；</text>
+      <text x="700" y="320" font-size="12" fill="#64748b">长会话由 compaction 控制预算。</text>
+    </svg>
+    <figcaption>标准循环：一次 turn 内可以多轮模型-工具；工具并行执行，结果回填；没有 tool call、达到 maxTurns 或 abort 时结束。</figcaption>
+  </figure>
+
+  <div class="grid g3">
+    <div class="card">
+      <h3>Plan</h3>
+      <p><b>Host：</b><code>todo_write</code> 是会话级 checklist，不是最终计划；<code>enter_plan_mode</code> / <code>exit_plan_mode</code> 是计划模式。</p>
+      <p><b>数字人：</b>计划锚定 WorkCase 的目标、约束、验收标准；写清下一步、等待项、停止条件；新信息到达后重规划。</p>
+      <p class="small muted">计划跨 AgentRun 存活；一次运行结束不等于任务结束。</p>
+    </div>
+    <div class="card">
+      <h3>Tool</h3>
+      <p><b>基础：</b>文件、bash、web、todo、plan、skill、subagent、MCP、用户交互。</p>
+      <p><b>数字人：</b>SOP 工具、跨账号会话工具、owner 读取、工作扫描/执行/交付。</p>
+      <p class="small muted">工具契约带授权、风险确认、审计、真实回执；授权可以按 run 作用域。</p>
+    </div>
+    <div class="card">
+      <h3>Memory</h3>
+      <p><b>层：</b>系统提示词概览、关键词详情、长期记忆、项目记忆、工作记忆、任务记录、会话上下文。</p>
+      <p><b>写回：</b>结果先形成 MemoryCandidate，带证据、范围、置信度，由记忆机制或 owner 策略审核。</p>
+      <p class="small muted">三个 Agent 共享知识/记忆，但各自上下文独立。</p>
+    </div>
+  </div>
+
+  <div class="table-wrap" style="margin-top:18px">
+    <table>
+      <thead><tr><th>组</th><th>工具 / 能力</th><th>说明</th></tr></thead>
+      <tbody>
+        <tr><td><b>文件 / 代码</b></td><td><code>read_file</code> <code>write_file</code> <code>edit_file</code> <code>edit_notebook</code> <code>glob</code> <code>grep</code> <code>bash</code> <code>execute_code</code> <code>lsp</code></td><td>标准 coding agent 工具面</td></tr>
+        <tr><td><b>Web</b></td><td><code>web_search</code> <code>web_fetch</code></td><td>检索与抓取</td></tr>
+        <tr><td><b>计划</b></td><td><code>todo_write</code> <code>enter_plan_mode</code> <code>exit_plan_mode</code></td><td>checklist 与计划模式</td></tr>
+        <tr><td><b>Skill / 子 Agent</b></td><td><code>read_skill</code> <code>agent</code> <code>subagent</code> <code>task_create/list/output/stop/wait</code> <code>send_message</code></td><td>技能加载与任务分派</td></tr>
+        <tr><td><b>交互 / 输出</b></td><td><code>ask_user_question</code> <code>request_user_*</code> <code>structured_output</code> <code>send_attachment</code></td><td>结构化提问与交付</td></tr>
+        <tr><td><b>MCP</b></td><td><code>list_mcp_resources</code> <code>read_mcp_resource</code> · MCP tool</td><td>外部资源接入</td></tr>
+        <tr><td><b>SOP</b></td><td><code>run_sop</code> <code>sop_status</code> <code>sop_result</code> <code>sop_wait</code> <code>sop_cancel</code> <code>sop_retry</code></td><td>持久运行，runId 立即返回</td></tr>
+        <tr><td><b>数字人协作</b></td><td><code>invite_participant</code> <code>assign_work_unit</code> <code>query_operation</code></td><td>协议级名称，实际注册名按插件版本核对</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section id="sop">
+  <div class="section-head">
+    <div>
+      <div class="section-no">11 / CAPABILITY SUPPLY</div>
+      <h2>SOP：经验怎样变成可执行能力</h2>
+    </div>
+    <p>SOP 是架构里的一段“能力供给”，不是架构中心；结构合法、能力可用、业务执行正确是三件不同的事。</p>
+  </div>
+
+  <figure>
+    <svg viewBox="0 0 1120 250" role="img" aria-label="从材料到运行时 SOP 的能力供给链路">
+      <rect x="0" y="0" width="1120" height="250" fill="#ffffff"/>
+      <text x="24" y="30" font-size="12" fill="#8a97a6" font-family="monospace" letter-spacing="1.5">MATERIALS → KNOWLEDGE → TEXT SOP → GRAPH → VALIDATE → PUBLISH → RUNTIME</text>
+
+      <rect x="24" y="78" width="132" height="72" rx="12" fill="#f8fafc" stroke="#cbd5e1"/>
+      <text x="42" y="106" font-size="12.5" font-weight="700" fill="#0f172a">材料</text>
+      <text x="42" y="128" font-size="10.5" fill="#64748b">文档 · 聊天 · 数据</text>
+
+      <rect x="184" y="78" width="132" height="72" rx="12" fill="#e6f4f1" stroke="#99d5cb"/>
+      <text x="202" y="106" font-size="12.5" font-weight="700" fill="#115e59">知识</text>
+      <text x="202" y="128" font-size="10.5" fill="#0f766e">有来源 · 有版本</text>
+
+      <rect x="344" y="78" width="132" height="72" rx="12" fill="#e6f4f1" stroke="#99d5cb"/>
+      <text x="362" y="106" font-size="12.5" font-weight="700" fill="#115e59">文本 SOP</text>
+      <text x="362" y="128" font-size="10.5" fill="#0f766e">经验过程</text>
+
+      <rect x="504" y="78" width="132" height="72" rx="12" fill="#ecebfb" stroke="#c7c3f5"/>
+      <text x="522" y="106" font-size="12.5" font-weight="700" fill="#312e81">Graph</text>
+      <text x="522" y="128" font-size="10.5" fill="#4338ca">引擎可解释的流程</text>
+
+      <rect x="664" y="78" width="132" height="72" rx="12" fill="#fffaf0" stroke="#f3d9b5"/>
+      <text x="682" y="106" font-size="12.5" font-weight="700" fill="#92400e">校验</text>
+      <text x="682" y="128" font-size="10.5" fill="#b45309">契约 · 能力 · 依赖</text>
+
+      <rect x="824" y="78" width="132" height="72" rx="12" fill="#fce8ed" stroke="#f6c9d4"/>
+      <text x="842" y="106" font-size="12.5" font-weight="700" fill="#9f1239">发布</text>
+      <text x="842" y="128" font-size="10.5" fill="#9f1239">版本 · 安装</text>
+
+      <rect x="984" y="78" width="112" height="72" rx="12" fill="#f8fafc" stroke="#cbd5e1"/>
+      <text x="1002" y="106" font-size="12.5" font-weight="700" fill="#0f172a">运行时</text>
+      <text x="1002" y="128" font-size="10.5" fill="#64748b">保留结果 / 版本</text>
+
+      <line x1="156" y1="114" x2="176" y2="114" stroke="#64748b" stroke-width="1.6" marker-end="url(#arrow)"/>
+      <line x1="316" y1="114" x2="336" y2="114" stroke="#64748b" stroke-width="1.6" marker-end="url(#arrow)"/>
+      <line x1="476" y1="114" x2="496" y2="114" stroke="#64748b" stroke-width="1.6" marker-end="url(#arrow)"/>
+      <line x1="636" y1="114" x2="656" y2="114" stroke="#64748b" stroke-width="1.6" marker-end="url(#arrow)"/>
+      <line x1="796" y1="114" x2="816" y2="114" stroke="#64748b" stroke-width="1.6" marker-end="url(#arrow)"/>
+      <line x1="956" y1="114" x2="976" y2="114" stroke="#64748b" stroke-width="1.6" marker-end="url(#arrow)"/>
+
+      <rect x="24" y="184" width="1072" height="38" rx="10" fill="#f4fbf9" stroke="#c9e8e3"/>
+      <text x="42" y="208" font-size="11.5" fill="#115e59">三类验证：结构合法 · 能力可用 · 业务执行正确；文本与 Graph 成对确认、成对发布，在途运行保留原版本。</text>
+    </svg>
+    <figcaption>SOP 能力供给：知识是依据，文本 SOP 是经验过程，Graph 是引擎可解释的流程；SOP 不是提示词里的“你可以按流程做”。</figcaption>
+  </figure>
+
+  <div class="grid g2">
+    <div class="card">
+      <h3>持久 SOP 工具</h3>
+      <p><code>run_sop</code> 立即返回 <code>runId</code>，之后用 <code>sop_wait</code> / <code>sop_status</code> / <code>sop_result</code> / <code>sop_cancel</code> / <code>sop_retry</code> 查询和控制。长流程不靠一个阻塞调用硬等。</p>
+    </div>
+    <div class="card">
+      <h3>生命周期</h3>
+      <p>知识包携带已发布的文本与 Graph；本地留草稿；更新成对确认、成对发布；在途任务保留原版本绑定。知识变了，流程版本怎么办，有明确答案。</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section id="compare">
+  <div class="section-head">
+    <div>
+      <div class="section-no">12 / EXTERNAL REFERENCE</div>
+      <h2>对照 DeepSeek Super-agent：同一类问题，不同切法</h2>
+    </div>
+    <p>官方原文《Super-agent 设计探索：迈向更自主的 Agent 系统》，2026-10-31，DeepSeek Harness 团队。</p>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>维度</th><th>Super-agent（官方）</th><th>数字人（r2007 / r266）</th></tr></thead>
+      <tbody>
+        <tr><td><b>入口</b></td><td>Router 常驻，全局序点，跨任务决策</td><td>发现 Agent + 统一 Manager</td></tr>
+        <tr><td><b>任务单元</b></td><td>Trigger / Ticket（仓库实现）</td><td>WorkCandidate / WorkCase / WorkNode</td></tr>
+        <tr><td><b>分工依据</b></td><td>任务与任务之间</td><td>发现、调度、执行的责任链</td></tr>
+        <tr><td><b>协作</b></td><td>Router 分派 Worker，Worker 可再开 Subagent</td><td>Coordinator 在 TeamRun 内组织，Executor 执行 ExecutionSpec</td></tr>
+        <tr><td><b>授权</b></td><td>Mandate + 版本化 Policy（仓库实现）</td><td>RunContext 按入口缩权 + 审批 + Command Registry</td></tr>
+        <tr><td><b>状态与运行</b></td><td>Ticket 与 Session 解耦，Assignment 可重建</td><td>WorkCase 与 AgentRun 分离，AgentRun 有界</td></tr>
+        <tr><td><b>事件与审计</b></td><td>不可变 Trigger 去重</td><td>Event Journal + eventSeq / stateRevision</td></tr>
+        <tr><td><b>恢复</b></td><td>Assignment 重建 + 目录 / git / GitHub 对账</td><td>快照 + 事件重放 + dispatchSeq</td></tr>
+        <tr><td><b>存算分离</b></td><td>云端 Agent Loop + 状态库 + 端侧 daemon</td><td>Broker 协作日志/队列 + 群级存储 + owner 执行环境</td></tr>
+        <tr><td><b>全双工</b></td><td>异步 ReAct Loop，start / stop，结果作为新事件回投</td><td>事件唤醒 + 等待恢复 + 新 AgentRun；未找到 start/stop 实现</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="grid g2" style="margin-top:18px">
+    <div class="card">
+      <h3>共通点</h3>
+      <p>都把任务和运行分开；都强调不可变记录、幂等、授权固化和故障恢复；都不希望人盯着每个会话。</p>
+    </div>
+    <div class="card">
+      <h3>关键差异</h3>
+      <p>Super-agent 用 Router 串行入口收口跨任务决策，Worker 隔离执行；数字人更强调 owner 身份、一个 owner 一个逻辑 Manager、TeamRun 不嵌套、跨分身必须经过目标 Manager。</p>
+    </div>
+  </div>
+
+  <div class="callout rose">
+    <b>引用边界：</b>官方原文是 DeepSeek Harness 团队的架构思路探讨，不是正式产品说明；仓库原型与内部版本不同，部分设计只是未来方向。对外引用要注明作者、标题和链接，不把文章观点写成公司结论或个人成果。
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section id="resume">
+  <div class="section-head">
+    <div>
+      <div class="section-no">13 / RESUME THREADS</div>
+      <h2>四条简历主线：产品 → 协作 → 分工 → 稳定性</h2>
+    </div>
+    <p>先讲产品是什么、用户怎么协作，再讲内部谁负责、怎么保证稳定。Harness 术语只放在最后。</p>
+  </div>
+
+  <div class="grid g2">
+    <div class="point">
+      <div class="accent"></div>
+      <div class="no">01 / PRODUCT</div>
+      <h3>产品与知识供给</h3>
+      <p>数字分身绑定真人 owner，定期扫描IM/文档平台等授权数据源，把材料蒸馏成知识包、SOP 与 Skill，持续更新数字分身 / 数字员工。</p>
+      <div class="tag-row"><span class="tag">扫描</span><span class="tag">蒸馏</span><span class="tag">数字分身</span><span class="tag">知识包</span></div>
+    </div>
+    <div class="point">
+      <div class="accent"></div>
+      <div class="no">02 / COLLABORATION</div>
+      <h3>事件唤醒与状态流转</h3>
+      <p>群聊、外部请求、定时扫描以事件唤醒 Agent；单次 AgentRun 无状态，长周期任务通过任务记录在多次运行间流转，等待、恢复、验收都落到状态上。</p>
+      <div class="tag-row"><span class="tag amber">事件唤醒</span><span class="tag amber">无状态 AgentRun</span><span class="tag amber">长周期</span><span class="tag amber">状态流转</span></div>
+    </div>
+    <div class="point">
+      <div class="accent"></div>
+      <div class="no">03 / DIVISION</div>
+      <h3>多 Agent 分工与协作</h3>
+      <p>Discovery 找线索，Manager 接纳、规划与验收，Coordinator 组织 TeamRun，Executor 执行明确任务；群聊协作通过共享黑板同步目标、分工、依赖和结论，明确接纳 ≠ 派发、提交 ≠ 完成。</p>
+      <div class="tag-row"><span class="tag indigo">多 Agent</span><span class="tag indigo">职责边界</span><span class="tag indigo">共享黑板</span><span class="tag indigo">协作</span></div>
+    </div>
+    <div class="point">
+      <div class="accent"></div>
+      <div class="no">04 / STABILITY</div>
+      <h3>稳定性与存算分离</h3>
+      <p>远端 Broker 保存跨账号消息、队列和回执，作为恢复依据；本地 Runtime / owner 负责计算、私有知识、记忆、凭据和执行环境；进程重启后按 operationId 恢复，不重跑副作用。</p>
+      <div class="tag-row"><span class="tag rose">远端 Broker</span><span class="tag rose">本地 Runtime</span><span class="tag rose">存算分离</span><span class="tag rose">恢复</span></div>
+    </div>
+  </div>
+
+  <div class="callout">
+    <b>叙事顺序：</b>产品是什么 → 用户怎么协作 → 内部怎么分工 → 怎么保证稳定。扫描/蒸馏/分身放第 1 点，事件唤醒与状态流转放第 2 点，Agent 职责与黑板放第 3 点，远端 Broker 与本地 Runtime/owner 放第 4 点。
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section id="evidence">
+  <div class="section-head">
+    <div>
+      <div class="section-no">14 / EVIDENCE</div>
+      <h2>证据、归属与不能说过头的地方</h2>
+    </div>
+    <p>团队设计、个人动作、外部参考分开；未验证的链路不写成已上线。</p>
+  </div>
+
+  <div class="grid g4">
+    <div class="metric"><b>9</b><span>SOP 回归场景符合预期</span></div>
+    <div class="metric"><b>16–19%</b><span>首次生成输入减少</span></div>
+    <div class="metric"><b>564 + 22</b><span>插件 / 宿主相关测试通过</span></div>
+    <div class="metric"><b>30 + 59</b><span>跨账号群聊前后端测试</span></div>
+    <div class="metric"><b>100</b><span>单聊兼容测试与类型检查</span></div>
+    <div class="metric"><b>+197 / −9</b><span>单聊兼容改动，10 个文件</span></div>
+    <div class="metric"><b>201</b><span>真实页面建群返回</span></div>
+    <div class="metric"><b>5</b><span>其他分身可见，离线保留</span></div>
+  </div>
+
+  <div class="grid g2" style="margin-top:18px">
+    <div class="card">
+      <h3>个人动作</h3>
+      <ul class="small" style="padding-left:18px;color:var(--ink-2)">
+        <li>11-05：执行 Agent 技术方案重写、需求覆盖核对；提出 <code>Task / ExecutionRun / CollaborationRun / Assignment / Report / ReviewDecision</code> 对象模型。</li>
+        <li>11-09：跨账号群聊远程成员模型与派发链路；区分身份可见与入口可调用。</li>
+        <li>11-10：单聊兼容、Workcase 分支迁移、开发代理与缺陷收口。</li>
+        <li>10-23 ~ 10-30：SOP 转换、生命周期、诊断导出、上下文精简。</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>团队设计 / 外部参考</h3>
+      <ul class="small" style="padding-left:18px;color:var(--ink-2)">
+        <li>r2007 产品设计、r266 协作架构、r171 执行侧方案属于团队文档。</li>
+        <li>DeepSeek Super-agent 文章是外部参考，不是个人成果。</li>
+        <li>WorkCase / AgentRun / Manager / Coordinator / Executor 是设计主线，代码是否完全按这套落地要按版本核对。</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="callout">
+    <b>讲法：</b>Broker 协作日志/队列 + 群级存储 + owner 执行环境；WorkCase / AgentRun 解耦；事件驱动 + 等待恢复 + dispatchSeq。云端 Runtime、真实跨账号收发、执行 Agent 代码与验收是下一步，不当作已完成。
+  </div>
+
+  <div class="callout amber">
+    <b>待核实：</b>跨账号真实消息收发、执行 Agent 代码与评审、锁文件问题、全量测试、生产代理影响、r266 对象模型的代码位置。这些放在面试备料，不放进简历正文。
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section id="timeline">
+  <div class="section-head">
+    <div>
+      <div class="section-no">15 / TIMELINE</div>
+      <h2>个人参与时间线：从 SOP 到执行 Agent</h2>
+    </div>
+    <p>一条从“能跑起来”到“能解释架构、能落地、能排障”的线。</p>
+  </div>
+
+  <div class="grid g2">
+    <div class="timeline">
+      <div class="tl"><time>10-21 ~ 10-22</time><h3>进入与摸底</h3><p>拉分支、搭环境、跑通数字分身初始化；梳理需求与权限边界。</p></div>
+      <div class="tl"><time>10-23</time><h3>SOP 功能错位</h3><p>发现“引擎成功 ≠ 业务完成”，拆成证据提炼与 Graph 转换两段；9 个回归场景。</p></div>
+      <div class="tl"><time>10-27 ~ 10-28</time><h3>SOP 生命周期</h3><p>知识包携带文本与 Graph，本地草稿，成对确认、成对发布；端云一致与发布重试。</p></div>
+      <div class="tl"><time>10-29 ~ 10-30</time><h3>可观测与上下文</h3><p>全链路诊断导出；从日志倒推超时；输入减少 16–19%；564 + 22 项测试。</p></div>
+    </div>
+    <div class="timeline">
+      <div class="tl"><time>11-04</time><h3>接手执行 Agent</h3><p>接入分支，核对提交与运行态；确认负责执行 Agent。</p></div>
+      <div class="tl"><time>11-05</time><h3>方案与对象模型</h3><p>按会议纪要重写执行 Agent 技术方案；提出 Assignment / Report / ReviewDecision 对象模型；竞品调研。</p></div>
+      <div class="tl"><time>11-06 ~ 11-09</time><h3>Broker 与跨账号</h3><p>Broker 独立账户、跨账号单聊；群聊远程成员模型、派发链路；身份 vs 入口。</p></div>
+      <div class="tl"><time>11-10</time><h3>迁移与缺陷收口</h3><p>Workcase 分支迁移、干净环境；单聊兼容、财务页递归；Bug 检查点。</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section id="interview">
+  <div class="section-head">
+    <div>
+      <div class="section-no">16 / INTERVIEW</div>
+      <h2>面试口径：三句话把项目讲清楚</h2>
+    </div>
+    <p>先讲产品，再讲难点，最后讲验证；不要把 Harness 术语堆在第一句。</p>
+  </div>
+
+  <div class="grid g3">
+    <div class="card">
+      <div class="kicker">What</div>
+      <h3>我做了什么</h3>
+      <p>“我在一个绑定真人的数字人多 Agent 产品里负责执行侧，做过执行 Agent 方案、跨账号群聊派发、SOP 执行链路和真实环境验收。”</p>
+    </div>
+    <div class="card">
+      <div class="kicker">Hard</div>
+      <h3>难在哪</h3>
+      <p>“难点不是让模型调工具，而是任务连续性、身份与入口、跨账号状态、验收责任。我们把任务和运行分开，把 Broker 协作日志/队列、群级存储和 owner 执行环境分开。”</p>
+    </div>
+    <div class="card">
+      <div class="kicker">Proof</div>
+      <h3>怎么验证</h3>
+      <p>“SOP 侧 9 个回归场景、输入减少 16–19%；跨账号群聊前后端 89 项测试；单聊兼容 100 项测试；真实页面建群 201、5 位分身可见。”</p>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:18px">
+    <h3>如果面试官追问“这是你设计的吗？”</h3>
+    <p>“架构是团队方案，我负责执行侧方案、跨账号链路和验收。比如 11-05 我重写了执行 Agent 技术方案，提出任务账本对象模型；11-09 我确定跨账号群聊的远程成员方案并推动落地；11-10 我做分支迁移、单聊兼容和缺陷收口。”</p>
+  </div>
+
+  <div class="callout indigo">
+    <b>一句话收尾：</b>“基础 Harness 解决一个 Agent 怎么循环；数字人 Harness 解决一个绑定真人的 Agent 怎么持续工作。我在后者里做执行侧和跨账号协作这一层。”
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <div>
+      <h4>Sources</h4>
+      <p>实习档案：<code>工作记录/</code>、<code>实习项目记录/</code>、<code>公司项目档案/数字人产品线/数字分身产品线/</code>、<code>实习知识库/Wiki/</code>、<code>简历素材/数字人项目素材/</code>。</p>
+      <p>设计文档：r2007 产品设计、r266 多 Agent 协作架构、r171 执行侧方案、r74 发现/调度、r1080 员工数字分身。</p>
+      <p>外部参考：DeepSeek Harness 团队《Super-agent 设计探索：迈向更自主的 Agent 系统》，2026-10-31。</p>
+    </div>
+    <div>
+      <h4>Scope</h4>
+      <ul>
+        <li>团队设计、个人动作、外部参考分开标注。</li>
+        <li>未验证的链路不写成已上线。</li>
+        <li>内部系统名、链接、截图对外需脱敏。</li>
+      </ul>
+      <p class="fineprint">Digital Human Project Dossier · 2026-11-17 · single-file HTML</p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
